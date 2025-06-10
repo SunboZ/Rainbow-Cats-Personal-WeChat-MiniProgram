@@ -29,11 +29,17 @@ exports.main = async (event, context) => {
     const result = await cloud.openapi.subscribeMessage.send({
       touser: openid, // 发送通知给谁的openid(把上面挑好就行，这块不用动)
       data: {
-        thing6: {
+        thing1: {
           value: taskName
         },
-        thing9: {
+        thing2: {
           value: '你的宝r在努力学习哦'
+        },
+        thing3: {
+          value: '提交人'
+        },
+        thing4: {
+          value: '提交时间'
         }
       },
       
