@@ -8,6 +8,16 @@ Page({
         tmplIds: [templateId],
         success: (res) => {
             console.log('用户授权结果:', res);
+            wx.getSetting({
+              withSubscriptions: true,
+              success (res) {
+                console.log(res)
+                // res.authSetting = {
+                //   "scope.userInfo": true,
+                //   "scope.userLocation": true
+                // }
+              }
+            })
             //if (res[templateId] === 'accept'&&res[templateId2] === 'accept'&&res[templateId3] === 'accept') {
             if (res[templateId] === 'accept') {
             this.setData({
@@ -32,6 +42,8 @@ Page({
 
         userA: '',
         userB: '',
+
+        requestSubscribeMessageResult: '',
 
         daysInLove: 0
     },

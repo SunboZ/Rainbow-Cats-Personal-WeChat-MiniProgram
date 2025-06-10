@@ -4,46 +4,13 @@ Page({
         await this.saveMission();
         await this.sendSubscribeMessage();
   },
-  //发送消息
-  sendSubscribeMessage(e) {
-      //调用云函数，
-      wx.cloud.callFunction({
-      name: 'information',
-      //data是用来传给云函数event的数据，你可以把你当前页面获取消息填写到服务通知里面
-      data: {
-          action: 'sendSubscribeMessage',
-          templateId: '-g6xe849BPzCe33dPOy2xQgClsIhyxbQfV9RjtW21Rk',//这里我就直接把模板ID传给云函数了
-          me:'Test_me',
-          name:'Test_activity',
-          _openid:'oRPEX7QdpoX-l0G3Tp_vfMKz1nM8'//填入自己的openid
-      },
-      success: res => {
-          console.warn('[云函数] [openapi] subscribeMessage.send 调用成功：', res)
-          wx.showModal({
-          title: '发送成功',
-          content: '请返回微信主界面查看',
-          showCancel: false,
-          })
-          wx.showToast({
-          title: '发送成功，请返回微信主界面查看',
-          })
-          this.setData({
-          subscribeMessageResult: JSON.stringify(res.result)
-          })
-      },
-      fail: err => {
-          wx.showToast({
-          icon: 'none',
-          title: '调用失败',
-          })
-          console.error('[云函数] [openapi] subscribeMessage.send 调用失败：', err)
-      }
-      })
-  },  
-  //保存正在编辑的任务
   data: {
     title: '',
     desc: '',
+
+    user: '',
+    openid: 'none',
+    another_openid: '',
     
     credit: 0,
     maxCredit: getApp().globalData.maxCredit,
@@ -91,6 +58,118 @@ Page({
     }],
     list: getApp().globalData.collectionMissionList,
   },
+  getUser(){
+    wx.cloud.callFunction({name: 'getOpenId'}).then(res => {
+        if(res.result === getApp().globalData._openidA){
+          console.log('setting data')
+          console.log(getApp().globalData._openidA)
+            this.setData({
+                user: getApp().globalData.userA,
+                openid: getApp().globalData._openidA,
+                another_openid: getApp().globalData._openidA,
+            })
+        }else if(res.result === getApp().globalData._openidB){
+            this.setData({
+                user: getApp().globalData.userB,
+                openid: getApp().globalData._openidB,
+                another_openid: getApp().globalData._openidA,
+            })
+        }
+    })
+  },
+  //发送消息
+  sendSubscribeMessage(e) {
+      // 查看用户订阅消息设置
+      wx.getSetting({
+        withSubscriptions: true,
+        success (res) {
+          console.log(res)
+        }
+      })
+
+      const accessToken = '93_f0tZSId_a3cPoPqBUImj4oxPozr0eZ29mRkysyBn08gvK6xLVG-c1Zj9Qzng0rz5ss1-TaQZD8P8oMRxUVC9Cdkc3HUiEAojW94vFs5P8Ei9Kamva7s3v_cNFJUYUFbABANJU';
+
+    const url = `https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token=${accessToken}`;
+
+    this.getUser();
+
+    console.log("openid: ", this.data.openid);
+
+    const desc = this.data.desc ? this.data.desc : "无";
+
+    const data = {
+      "touser": this.data.another_openid,
+      "template_id": "-g6xe849BPzCe33dPOy2xQgClsIhyxbQfV9RjtW21Rk",
+      "miniprogramState": 'trial',
+      "page": "pages/MainPage/index",
+      "data": {
+        "thing1": {
+          "value": this.data.title
+        },
+        "thing2": {
+          "value": desc
+        },
+        "thing3": {
+          "value": this.data.user
+        },
+        "time4": {
+          "value": "2020-03-31 09:35:22"
+        }
+      }
+    };
+
+    wx.request({
+      url: url,
+      method: 'POST',
+      header: {
+        'Content-Type': 'application/json'
+      },
+      data: data,
+      success(res) {
+        console.log('请求成功:', res.data);
+      },
+      fail(err) {
+        console.error('请求失败:', err);
+      }
+    });
+
+      //调用云函数，
+      wx.cloud.callFunction({
+      name: 'information',
+      //data是用来传给云函数event的数据，你可以把你当前页面获取消息填写到服务通知里面
+      data: {
+          action: 'sendSubscribeMessage',
+          templateId: '-g6xe849BPzCe33dPOy2xQgClsIhyxbQfV9RjtW21Rk',//这里我就直接把模板ID传给云函数了
+          me:'Test_me',
+          name:'Test_activity',
+          _openid:'oRPEX7QdpoX-l0G3Tp_vfMKz1nM8'//填入自己的openid
+      },
+      success: res => {
+
+          console.warn('[云函数] [openapi] subscribeMessage.send 调用成功：', res)
+          wx.showModal({
+          title: '发送成功',
+          content: '请返回微信主界面查看',
+          showCancel: false,
+          })
+          wx.showToast({
+          title: '发送成功，请返回微信主界面查看',
+          })
+          this.setData({
+          subscribeMessageResult: JSON.stringify(res.result)
+          })
+      },
+      fail: err => {
+          wx.showToast({
+          icon: 'none',
+          title: '调用失败',
+          })
+          console.error('[云函数] [openapi] subscribeMessage.send 调用失败：', err)
+      }
+      })
+
+  },  
+  //保存正在编辑的任务
 
   //数据输入填写表单
   onTitleInput(e) {
